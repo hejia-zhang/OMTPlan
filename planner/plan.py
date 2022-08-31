@@ -162,6 +162,22 @@ class SRPlan(Plan):
         with open(dest, 'w') as f:
             f.write(plan_to_str)
 
+    def task_plan_eliminate_constraints(self, model, encoder, plan, failed_step):
+        """
+        Add a constraint to eliminate the current plan.
+        """
+        each_step_action_selection = []
+        for step in range(encoder.horizon):
+            if step > failed_step:
+                break
+            for current_step_action_var in encoder.action_variables[step].values():
+                if model[current_step_action_var]:
+                    each_step_action_selection.append(current_step_action_var)
+                else:
+                    each_step_action_selection.append(Not(current_step_action_var))
+
+        return [Not(And(each_step_action_selection))]
+
     def general_failure_constraints_naive(self, model, encoder, plan, failed_step):
         """
         negate action under the same states
